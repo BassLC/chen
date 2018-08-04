@@ -6,87 +6,85 @@
 // a PGN or FEN).
 Board::Board() {
     // Allocate all the space necessary in one go
-    m_white_pieces.reserve(6);
-    m_black_pieces.reserve(6);
+    m_board_state.reserve(2);
+    m_board_state[Color::White].reserve(6);
+    m_board_state[Color::Black].reserve(6);
 
-    // Setup the normal starting position
-    m_white_pieces[Piece::Pawns] =
+    // // Setup the normal starting position
+    m_board_state[Color::White][Piece::Pawns] =
         0b0000000000000000000000000000000000000000000000001111111100000000;
-    m_white_pieces[Piece::Bishops] =
+    m_board_state[Color::White][Piece::Bishops] =
         0b0000000000000000000000000000000000000000000000000000000000100100;
-    m_white_pieces[Piece::Knights] =
+    m_board_state[Color::White][Piece::Knights] =
         0b0000000000000000000000000000000000000000000000000000000001000010;
-    m_white_pieces[Piece::Rooks] =
+    m_board_state[Color::White][Piece::Rooks] =
         0b0000000000000000000000000000000000000000000000000000000010000001;
-    m_white_pieces[Piece::Queens] =
+    m_board_state[Color::White][Piece::Queens] =
         0b0000000000000000000000000000000000000000000000000000000000010000;
-    m_white_pieces[Piece::King] =
+    m_board_state[Color::White][Piece::King] =
         0b0000000000000000000000000000000000000000000000000000000000001000;
 
-    m_black_pieces[Piece::Pawns] =
+    m_board_state[Color::Black][Piece::Pawns] =
         0b0000000011111111000000000000000000000000000000000000000000000000;
-    m_black_pieces[Piece::Bishops] =
+    m_board_state[Color::Black][Piece::Bishops] =
         0b0010010000000000000000000000000000000000000000000000000000000000;
-    m_black_pieces[Piece::Knights] =
+    m_board_state[Color::Black][Piece::Knights] =
         0b0100001000000000000000000000000000000000000000000000000000000000;
-    m_black_pieces[Piece::Rooks] =
+    m_board_state[Color::Black][Piece::Rooks] =
         0b1000000100000000000000000000000000000000000000000000000000000000;
-    m_black_pieces[Piece::Queens] =
+    m_board_state[Color::Black][Piece::Queens] =
         0b0001000000000000000000000000000000000000000000000000000000000000;
-    m_black_pieces[Piece::King] =
+    m_board_state[Color::Black][Piece::King] =
         0b0000100000000000000000000000000000000000000000000000000000000000;
 }
 
-bitboard Board::get_all_white_pieces() {
-    return (m_white_pieces[Piece::Pawns] | m_white_pieces[Piece::Bishops] |
-            m_white_pieces[Piece::Knights] | m_white_pieces[Piece::Rooks] |
-            m_white_pieces[Piece::Queens] | m_white_pieces[Piece::King]);
+// @TODO: Rename this function (it is confusing)
+bitboard Board::get_side_board(const Color& side) noexcept {
+    bitboard result = 0;
+    for (const auto b : m_board_state[side]) {
+        result |= b.second;
+    }
+    return result;
 }
 
-bitboard Board::get_all_black_pieces() {
-    return (m_black_pieces[Piece::Pawns] | m_black_pieces[Piece::Bishops] |
-            m_black_pieces[Piece::Knights] | m_black_pieces[Piece::Rooks] |
-            m_black_pieces[Piece::Queens] | m_black_pieces[Piece::King]);
+bitboard Board::get_piece_board(const Color& side,
+                                const Piece& piece_type) noexcept {
+    return m_board_state[side][piece_type];
 }
+
+std::string Board::pretty_string() {
+    std::string board(64, '.');
+
+    // Goes through each side's bitboads and puts in the string
+    // its correct letter (defined in the Piece enum class).
+    for (const auto side_state : m_board_state) {
+        Color side = side_state.first;
+        for (const auto piece_info : side_state.second) {
+            bitboard b = piece_info.second;
+
+            for (int i = 0; i < 64; ++i) {
+                // Check most right bit
+                if (b & 0x8000000000000000) {
+                    // If it is a white piece, the letter is in uppercase,
+                    // else the letter is in lowercase.
+                    board[i] =
+                        (side == Color::White)
+                            ? std::toupper(static_cast<char>(piece_info.first))
+                            : static_cast<char>(piece_info.first);
+                }
+
+                b <<= 1;
+            }
+        }
+    }
+    return board;
+}
+
 
 void Board::pretty_print() {
-    std::string board(64, '.');
-    const std::array<Piece, 6> piece_type{
-        Piece::Pawns, Piece::Bishops, Piece::Knights,
-        Piece::Rooks, Piece::Queens,  Piece::King,
-    };
+    const std::string b = Board::pretty_string();
 
-    // @TODO:
-    // - Get rid of this code duplication.
-    // ? Make this function return a string, instead of printing info.
-
-    // White pieces
-    for (const auto p : piece_type) {
-        bitboard b = m_white_pieces[p];
-        for (auto i = 63; i >= 0; --i) {
-            if (b & 0b1) {
-                board[i] = std::toupper(static_cast<char>(p));
-            }
-            b >>= 1;
-        }
-    }
-
-    // Black pieces
-    for (const auto p : piece_type) {
-        bitboard b = m_black_pieces[p];
-        for (auto i = 63; i >= 0; --i) {
-            if (b & 0b1) {
-                board[i] = static_cast<char>(p);
-            }
-            b >>= 1;
-        }
-    }
-
-    // Print it (and put spaces in each line)
-    for (auto i = 0; i < 64; ++i) {
-        std::cout << board[i];
-        if ((i + 1) % 8 == 0) {
-            std::cout << '\n';
-        }
+    for (int i = 0; i < 8; ++i) {
+        std::cout << b.substr(i*8, 8) << '\n';
     }
 }
