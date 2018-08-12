@@ -11,35 +11,34 @@ Board::Board() {
     m_board_state[Color::Black].reserve(6);
 
     // // Setup the normal starting position
-    m_board_state[Color::White][Piece::Pawns] =
+    m_board_state[Color::White][Piece::Pawn] =
         0b0000000000000000000000000000000000000000000000001111111100000000;
-    m_board_state[Color::White][Piece::Bishops] =
+    m_board_state[Color::White][Piece::Bishop] =
         0b0000000000000000000000000000000000000000000000000000000000100100;
-    m_board_state[Color::White][Piece::Knights] =
+    m_board_state[Color::White][Piece::Knight] =
         0b0000000000000000000000000000000000000000000000000000000001000010;
-    m_board_state[Color::White][Piece::Rooks] =
+    m_board_state[Color::White][Piece::Rook] =
         0b0000000000000000000000000000000000000000000000000000000010000001;
-    m_board_state[Color::White][Piece::Queens] =
+    m_board_state[Color::White][Piece::Queen] =
         0b0000000000000000000000000000000000000000000000000000000000010000;
     m_board_state[Color::White][Piece::King] =
         0b0000000000000000000000000000000000000000000000000000000000001000;
 
-    m_board_state[Color::Black][Piece::Pawns] =
+    m_board_state[Color::Black][Piece::Pawn] =
         0b0000000011111111000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Bishops] =
+    m_board_state[Color::Black][Piece::Bishop] =
         0b0010010000000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Knights] =
+    m_board_state[Color::Black][Piece::Knight] =
         0b0100001000000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Rooks] =
+    m_board_state[Color::Black][Piece::Rook] =
         0b1000000100000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Queens] =
+    m_board_state[Color::Black][Piece::Queen] =
         0b0001000000000000000000000000000000000000000000000000000000000000;
     m_board_state[Color::Black][Piece::King] =
         0b0000100000000000000000000000000000000000000000000000000000000000;
 }
 
-// @TODO: Rename this function (it is confusing)
-bitboard Board::get_side_board(const Color& side) noexcept {
+bitboard Board::get_color_board(const Color& side) noexcept {
     bitboard result = 0;
     for (const auto b : m_board_state[side]) {
         result |= b.second;
@@ -47,8 +46,8 @@ bitboard Board::get_side_board(const Color& side) noexcept {
     return result;
 }
 
-bitboard Board::get_piece_board(const Color& side,
-                                const Piece& piece_type) noexcept {
+bitboard Board::get_piece_board(const Piece& piece_type,
+                                const Color& side) noexcept {
     return m_board_state[side][piece_type];
 }
 
@@ -80,11 +79,9 @@ std::string Board::pretty_string() {
     return board;
 }
 
-
 void Board::pretty_print() {
     const std::string b = Board::pretty_string();
-
     for (int i = 0; i < 8; ++i) {
-        std::cout << b.substr(i*8, 8) << '\n';
+        std::cout << b.substr(i * 8, 8) << '\n';
     }
 }

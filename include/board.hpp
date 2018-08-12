@@ -7,11 +7,11 @@
 using bitboard = uint64_t;
 
 enum class Piece : char {
-    Pawns = 'p',
-    Bishops = 'b',
-    Knights = 'n',
-    Rooks = 'r',
-    Queens = 'q',
+    Pawn = 'p',
+    Bishop = 'b',
+    Knight = 'n',
+    Rook = 'r',
+    Queen = 'q',
     King = 'k',
 };
 
@@ -25,9 +25,9 @@ class Board {
   public:
     Board();
     ~Board() = default;
-    bitboard get_side_board(const Color& side) noexcept;
-    bitboard get_piece_board(const Color& side,
-                             const Piece& piece_type) noexcept;
+    bitboard get_color_board(const Color& side) noexcept;
+    bitboard get_piece_board(const Piece& piece_type,
+                             const Color& side) noexcept;
     std::string pretty_string();
     void pretty_print();
 
