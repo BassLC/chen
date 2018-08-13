@@ -54,8 +54,8 @@ bitboard Board::get_piece_board(const Piece& piece_type,
 std::string Board::pretty_string() {
     std::string board(64, '.');
 
-    // Goes through each side's bitboads and puts in the string
-    // its correct letter (defined in the Piece enum class).
+    // Goes through each side's bitboards and inserts its corresponding letter
+    // (defined in the Piece enum class) in the string.
     for (const auto side_state : m_board_state) {
         Color side = side_state.first;
         for (const auto piece_info : side_state.second) {
@@ -67,9 +67,9 @@ std::string Board::pretty_string() {
                     // If it is a white piece, the letter is in uppercase,
                     // else the letter is in lowercase.
                     board[i] =
-                        (side == Color::White)
-                            ? std::toupper(static_cast<char>(piece_info.first))
-                            : static_cast<char>(piece_info.first);
+                        (side == Color::White) ?
+                            std::toupper(static_cast<char>(piece_info.first)) :
+                            static_cast<char>(piece_info.first);
                 }
 
                 b <<= 1;
