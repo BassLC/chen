@@ -3,8 +3,7 @@
 
 #include <cstdint>
 #include <unordered_map>
-
-using bitboard = uint64_t;
+#include "bitboard.hpp"
 
 enum class Piece : char {
     Pawn = 'p',

@@ -4,17 +4,16 @@
 #include "board.hpp"
 #include <vector>
 
-using Square = uint8_t;
 
 struct Move {
     Piece piece_type;
     Color color;
-    Square from;
-    Square to;
+    square from;
+    square to;
     // bool is_castling;
     // bool is_capture;
 
-    Move(Piece p, Color c, Square f, Square t) :
+    Move(Piece p, Color c, square f, square t) :
         piece_type(std::move(p)),
         color(std::move(c)),
         from(std::move(f)),
@@ -33,5 +32,4 @@ std::vector<Move> generate_queen_moves(Board& board, const Color& side);
 std::vector<Move> generate_king_moves(Board& board, const Color& side);
 
 } // namespace MoveGen
-
 #endif
