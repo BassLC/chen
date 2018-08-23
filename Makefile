@@ -8,7 +8,7 @@ chen: $(OBJS)
 	$(CC) $(OBJS) -O3 -o chen
 
 test: $(OBJS)
-	$(CC) $(OBJS) -o test
+	$(CC) $(shell find src/ -type f ! -name "main.cpp") tests/tests.cpp -o test
 
 .PHONY: clean
 clean:
