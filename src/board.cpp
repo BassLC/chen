@@ -81,7 +81,9 @@ std::string Board::pretty_string() {
 
 void Board::pretty_print() {
     const std::string b = Board::pretty_string();
+    std::cout << "+--------+\n";
     for (int i = 0; i < 8; ++i) {
-        std::cout << b.substr(i * 8, 8) << '\n';
+        std::cout << " " << b.substr(i * 8, 8) << '\n';
     }
+    std::cout << "+--------+\n";
 }
