@@ -22,6 +22,7 @@ enum class Color : bool {
 class Board {
 
   public:
+    Board(const std::string& fen_notation);
     Board();
     ~Board() = default;
     bitboard get_color_board(const Color& side) noexcept;

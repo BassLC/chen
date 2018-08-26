@@ -1,42 +1,62 @@
 #include "../include/board.hpp"
 #include <iostream>
 
-// @TODO:
-// - Make a constructor that allows to load a specific configuration (maybe from
-// a PGN or FEN).
-Board::Board() {
+Board::Board(const std::string& fen_notation) {
     // Allocate all the space necessary in one go
     m_board_state.reserve(2);
     m_board_state[Color::White].reserve(6);
     m_board_state[Color::Black].reserve(6);
 
-    // // Setup the normal starting position
-    m_board_state[Color::White][Piece::Pawn] =
-        0b0000000000000000000000000000000000000000000000001111111100000000;
-    m_board_state[Color::White][Piece::Bishop] =
-        0b0000000000000000000000000000000000000000000000000000000000100100;
-    m_board_state[Color::White][Piece::Knight] =
-        0b0000000000000000000000000000000000000000000000000000000001000010;
-    m_board_state[Color::White][Piece::Rook] =
-        0b0000000000000000000000000000000000000000000000000000000010000001;
-    m_board_state[Color::White][Piece::Queen] =
-        0b0000000000000000000000000000000000000000000000000000000000010000;
-    m_board_state[Color::White][Piece::King] =
-        0b0000000000000000000000000000000000000000000000000000000000001000;
+    // Zero the state
+    m_board_state[Color::White][Piece::Pawn] = 0;
+    m_board_state[Color::White][Piece::Bishop] = 0;
+    m_board_state[Color::White][Piece::Knight] = 0;
+    m_board_state[Color::White][Piece::Rook] = 0;
+    m_board_state[Color::White][Piece::Queen] = 0;
+    m_board_state[Color::White][Piece::King] = 0;
+    m_board_state[Color::Black][Piece::Pawn] = 0;
+    m_board_state[Color::Black][Piece::Bishop] = 0;
+    m_board_state[Color::Black][Piece::Knight] = 0;
+    m_board_state[Color::Black][Piece::Rook] = 0;
+    m_board_state[Color::Black][Piece::Queen] = 0;
+    m_board_state[Color::Black][Piece::King] = 0;
 
-    m_board_state[Color::Black][Piece::Pawn] =
-        0b0000000011111111000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Bishop] =
-        0b0010010000000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Knight] =
-        0b0100001000000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Rook] =
-        0b1000000100000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::Queen] =
-        0b0001000000000000000000000000000000000000000000000000000000000000;
-    m_board_state[Color::Black][Piece::King] =
-        0b0000100000000000000000000000000000000000000000000000000000000000;
+    int index = 0;
+    for (auto c : fen_notation) {
+        if (c == '/') {
+            // Ignore the breaks
+            continue;
+
+        } else if (c == ' ') {
+            // Ends with a space
+            // @TODO: Implement castling recognisition and playing state
+            break;
+
+        } else if (std::isdigit(c)) {
+            // Add the digit number to the index position and read next
+            // character
+            index += c - '0';
+            continue;
+
+        } else {
+            if (std::toupper(c) == c) {
+                // If it is a UPPERCASE letter, then it is a white piece position
+                m_board_state[Color::White]
+                             [static_cast<Piece>(std::tolower(c))] |=
+                    0x8000000000000000 >> index;
+            } else {
+                // Else, it is a black piece position
+                m_board_state[Color::Black]
+                             [static_cast<Piece>(std::tolower(c))] |=
+                    0x8000000000000000 >> index;
+            }
+        }
+        ++index;
+    }
 }
+
+// By default, initialize the starting position
+Board::Board() : Board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {};
 
 bitboard Board::get_color_board(const Color& side) noexcept {
     bitboard result = 0;
