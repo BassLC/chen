@@ -178,17 +178,6 @@ bitboard get_line_moves_board(Board& board, const bitboard& piece_board,
     return ((forward ^ BitBoard::reverse(reverse)) & mask);
 }
 
-// @TODO: Check to see if king moves work
-// bitboard get_king_moves_board(const bitboard& king_pos,
-//                               const bitboard& own_color_board) {
-
-//     return (((king_pos << 8)) | ((king_pos << 7) & ~File::A) |
-//             ((king_pos >> 1) & ~File::A) | ((king_pos >> 9) & ~File::A) |
-//             ((king_pos >> 8)) | ((king_pos >> 7) & ~File::H) |
-//             ((king_pos << 1) & ~File::H) | ((king_pos << 9) & ~File::H)) &
-//            ~own_color_board;
-// }
-
 std::vector<Move> MoveGen::generate_rook_moves(Board& board,
                                                const Color& side) {
     std::vector<Move> possible_moves;
@@ -294,6 +283,33 @@ std::vector<Move> MoveGen::generate_knight_moves(Board& board,
                 Piece::Knight, side, BitBoard::to_square(one_knight_pos),
                 BitBoard::to_square(BitBoard::pop_lsb(moves)));
         }
+    }
+
+    return possible_moves;
+}
+
+bitboard get_king_moves_board(const bitboard& king_pos,
+                              const bitboard& own_color_board) {
+
+    return (((king_pos << 8)) | ((king_pos << 7) & ~File::A) |
+            ((king_pos >> 1) & ~File::A) | ((king_pos >> 9) & ~File::A) |
+            ((king_pos >> 8)) | ((king_pos >> 7) & ~File::H) |
+            ((king_pos << 1) & ~File::H) | ((king_pos << 9) & ~File::H)) &
+           ~own_color_board;
+}
+
+std::vector<Move> MoveGen::generate_king_moves(Board& board,
+                                               const Color& side) {
+    std::vector<Move> possible_moves;
+    const bitboard king_pos = board.get_piece_board(Piece::King, side);
+    const bitboard own_color_board = board.get_color_board(side);
+    bitboard moves = get_king_moves_board(king_pos, own_color_board);
+    
+    // While there are moves to process
+    while (moves != 0) {
+        possible_moves.emplace_back(
+            Piece::King, side, BitBoard::to_square(king_pos),
+            BitBoard::to_square(BitBoard::pop_lsb(moves)));
     }
 
     return possible_moves;

@@ -62,4 +62,18 @@ TEST_CASE("MoveGen") {
             REQUIRE(move_list.size() == 8);
         }
     }
+
+    SUBCASE("Generate King Moves") {
+        SUBCASE("edge of the board") {
+            Board b("k");
+            auto move_list = MoveGen::generate_king_moves(b, Color::Black);
+            REQUIRE(move_list.size() == 3);
+        }
+
+        SUBCASE("middle of the board") {
+            Board b("8/8/8/8/4k3/8/8/8");
+            auto move_list = MoveGen::generate_king_moves(b, Color::Black);
+            REQUIRE(move_list.size() == 8);
+        }
+    }
 }
