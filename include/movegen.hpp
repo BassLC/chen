@@ -20,14 +20,9 @@ struct Move {
 namespace MoveGen {
 
 void print_move(const Move& move);
-bitboard movable_pawns(Board& board, const Color& side);
-
-std::vector<Move> generate_pawn_moves(Board& board, const Color& side);
-std::vector<Move> generate_bishop_moves(Board& board, const Color& side);
-std::vector<Move> generate_knight_moves(Board& board, const Color& side);
-std::vector<Move> generate_rook_moves(Board& board, const Color& side);
-std::vector<Move> generate_queen_moves(Board& board, const Color& side);
-std::vector<Move> generate_king_moves(Board& board, const Color& side);
+std::vector<Move>
+generate_moves(Board& board,
+               const std::vector<std::pair<Piece, Color>>& pieces);
 
 } // namespace MoveGen
 #endif
