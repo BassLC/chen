@@ -12,9 +12,9 @@ struct Move {
     // bool is_castling;
     bool is_capture;
 
-    Move(Piece p, Color c, square f, square t)
+    Move(Piece p, Color c, square f, square t, bool cap)
         : piece_type(std::move(p)), color(std::move(c)), from(std::move(f)),
-          to(std::move(t)){};
+          to(std::move(t)), is_capture(std::move(cap)){};
 };
 
 namespace MoveGen {
