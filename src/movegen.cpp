@@ -221,46 +221,41 @@ MoveGen::generate_moves(Board& board,
                         const std::vector<std::pair<Piece, Color>>& pieces) {
 
     std::vector<Move> possible_moves;
-    std::vector<std::function<bitboard(bitboard)>> function_generators;
+    std::function<bitboard(bitboard)> generator;
 
     // Iterate though piece query and store all the functions needed for this
     // piece generation
     for (auto pair : pieces) {
-        using namespace std::placeholders;
-        function_generators.clear();
-
         switch (pair.first) {
         case Piece::Knight:
-            function_generators.emplace_back(generate_knight_moves);
+            generator = generate_knight_moves;
             break;
 
         case Piece::Bishop:
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, diag_mask));
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, anti_diag_mask));
+            generator = [&](bitboard b) {
+                            return (generate_line_moves(board, b, diag_mask) |
+                                    generate_line_moves(board, b, anti_diag_mask));
+                        };
             break;
 
         case Piece::Rook:
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, file_mask));
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, rank_mask));
+            generator = [&](bitboard b) {
+                            return (generate_line_moves(board, b, file_mask) |
+                                    generate_line_moves(board, b, rank_mask));
+                        };
             break;
 
         case Piece::Queen:
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, file_mask));
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, rank_mask));
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, diag_mask));
-            function_generators.emplace_back(
-                std::bind(generate_line_moves, board, _1, anti_diag_mask));
+            generator = [&](bitboard b) {
+                            return (generate_line_moves(board, b, file_mask) |
+                                    generate_line_moves(board, b, rank_mask) |
+                                    generate_line_moves(board, b, diag_mask) |
+                                    generate_line_moves(board, b, anti_diag_mask));
+                        };
             break;
 
         case Piece::King:
-            function_generators.emplace_back(generate_king_moves);
+            generator = generate_king_moves;
             break;
 
         default:
@@ -270,16 +265,9 @@ MoveGen::generate_moves(Board& board,
         bitboard all_pieces = board.get_piece_board(pair.first, pair.second);
         while (all_pieces != 0) {
             bitboard one_piece = BitBoard::pop_lsb(all_pieces);
-            bitboard moves = 0;
-
-            // All the piece moves are simply a composition of generators
-            for (auto gen : function_generators) {
-                moves |= gen(one_piece);
-            }
-
-            // It is impossible for two pieces be in the same square
-            moves &= ~(board.get_color_board(pair.second));
-
+            // All the moves are a combination of the appropriate generator
+            // and the removal of the already occupied squares
+            bitboard moves = generator(one_piece) & ~board.get_color_board(pair.second);
             while (moves != 0) {
                 possible_moves.emplace_back(
                     pair.first, pair.second, BitBoard::to_square(one_piece),
