@@ -208,11 +208,51 @@ bitboard generate_king_moves(const bitboard& king_pos) {
             ((king_pos << 1) & ~File::H) | ((king_pos << 9) & ~File::H));
 }
 
-bitboard pawns_not_moved_board(Board& b, const Color& side) {
-    bitboard pawn_board = b.get_piece_board(Piece::Pawn, side);
+bitboard pawns_not_moved(const bitboard& piece_board, const Color& side) {
     const bitboard starting_file =
         (side == Color::White) ? Rank::TWO : Rank::SEVEN;
-    return pawn_board & ~starting_file;
+    return piece_board & starting_file;
+}
+
+// There are three types of pawn movement: a single push (which all non-blocked
+// pawns can make), a double push (which all not-moved non-blocked pawns can
+// make) and pawns attacks (which all pawns with an adversary piece in its
+// diagonal or anti-diagonal square can make)
+bitboard generate_pawn_moves(Board& board, const bitboard& piece_board,
+                             const Color& side) {
+    const bitboard empty = ~(board.get_color_board(Color::White) |
+                             board.get_color_board(Color::Black));
+
+    bitboard single_push, double_push, pawn_attacks = 0;
+
+    if (side == Color::White) {
+        // A pawn can single push if there is no piece in front of it
+        single_push = (piece_board << 8) & empty;
+
+        // Only pawns that have not been moved (basically pawns that never left
+        // the starting position, since a pawn can not get back to a square) AND
+        // can single push AND do not have any piece in front of them after a
+        // single push can double push
+        double_push =
+            (((pawns_not_moved(piece_board, side) << 8) & empty) << 8) &
+            Rank::FOUR;
+
+        // Every pawn can attack if there is an other color piece in its
+        // diagonal or anti-diagonal adjacent square
+        pawn_attacks = (((piece_board << 9) & ~File::H) |
+                        ((piece_board << 7) & ~File::A)) &
+                       board.get_color_board(Color::Black);
+    } else {
+        // For Black, operations are reversed
+        single_push = (piece_board >> 8) & empty;
+        double_push =
+            (((pawns_not_moved(piece_board, side) >> 8) & empty) >> 8) &
+            Rank::FIVE;
+        pawn_attacks = (((piece_board >> 9) & ~File::A) |
+                        ((piece_board >> 7) & ~File::H)) &
+                       board.get_color_board(Color::White);
+    }
+    return (single_push | double_push | pawn_attacks);
 }
 
 // Returns all moves from piece query
@@ -221,57 +261,77 @@ MoveGen::generate_moves(Board& board,
                         const std::vector<std::pair<Piece, Color>>& pieces) {
 
     std::vector<Move> possible_moves;
-    std::function<bitboard(bitboard)> generator;
+    std::function<bitboard(bitboard)> move_generator;
 
     // Iterate though piece query and store all the functions needed for this
     // piece generation
     for (auto pair : pieces) {
         switch (pair.first) {
         case Piece::Knight:
-            generator = generate_knight_moves;
+            move_generator = generate_knight_moves;
             break;
 
         case Piece::Bishop:
-            generator = [&](bitboard b) {
-                            return (generate_line_moves(board, b, diag_mask) |
-                                    generate_line_moves(board, b, anti_diag_mask));
-                        };
+            // Bishop moves are a composition of the diagonal moves
+            // and anti-diagonal moves
+            move_generator = [&](const bitboard& b) {
+                return (generate_line_moves(board, b, diag_mask) |
+                        generate_line_moves(board, b, anti_diag_mask));
+            };
             break;
 
         case Piece::Rook:
-            generator = [&](bitboard b) {
-                            return (generate_line_moves(board, b, file_mask) |
-                                    generate_line_moves(board, b, rank_mask));
-                        };
+            // Rook moves are a composition of the file moves
+            // and rank moves
+            move_generator = [&](const bitboard& b) {
+                return (generate_line_moves(board, b, file_mask) |
+                        generate_line_moves(board, b, rank_mask));
+            };
             break;
 
         case Piece::Queen:
-            generator = [&](bitboard b) {
-                            return (generate_line_moves(board, b, file_mask) |
-                                    generate_line_moves(board, b, rank_mask) |
-                                    generate_line_moves(board, b, diag_mask) |
-                                    generate_line_moves(board, b, anti_diag_mask));
-                        };
+            // Queen moves are a composition os the file moves,
+            // rank moves, diagonal moves and anti-diagonal moves
+            move_generator = [&](const bitboard& b) {
+                return (generate_line_moves(board, b, file_mask) |
+                        generate_line_moves(board, b, rank_mask) |
+                        generate_line_moves(board, b, diag_mask) |
+                        generate_line_moves(board, b, anti_diag_mask));
+            };
             break;
 
         case Piece::King:
-            generator = generate_king_moves;
+            move_generator = generate_king_moves;
             break;
 
+        case Piece::Pawn:
+            move_generator = [&](const bitboard& b) {
+                return generate_pawn_moves(board, b, pair.second);
+            };
+            break;
         default:
             break;
         }
 
         bitboard all_pieces = board.get_piece_board(pair.first, pair.second);
+        const bitboard other_color_board =
+            (pair.second == Color::White) ?
+                board.get_color_board(Color::Black) :
+                board.get_color_board(Color::White);
         while (all_pieces != 0) {
-            bitboard one_piece = BitBoard::pop_lsb(all_pieces);
-            // All the moves are a combination of the appropriate generator
+            const bitboard one_piece = BitBoard::pop_lsb(all_pieces);
+            const square piece_square = BitBoard::to_square(one_piece);
+
+            // All the moves are a combination of the appropriate move_generator
             // and the removal of the already occupied squares
-            bitboard moves = generator(one_piece) & ~board.get_color_board(pair.second);
+            bitboard moves =
+                move_generator(one_piece) & ~board.get_color_board(pair.second);
+
             while (moves != 0) {
+                const bitboard move = BitBoard::pop_lsb(moves);
                 possible_moves.emplace_back(
-                    pair.first, pair.second, BitBoard::to_square(one_piece),
-                    BitBoard::to_square(BitBoard::pop_lsb(moves)));
+                    pair.first, pair.second, piece_square,
+                    BitBoard::to_square(move), move & other_color_board);
             }
         }
     }
