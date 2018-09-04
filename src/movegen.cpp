@@ -4,7 +4,6 @@
 
 // @TODO:
 // - Test for captures
-// - Implement pawn move generator
 
 // Because the sliding piece move generation method (Hyperbola Quintessence)
 // uses masks to calculate all the attacks, it is best to have them all
@@ -255,7 +254,6 @@ bitboard generate_pawn_moves(Board& board, const bitboard& piece_board,
     return (single_push | double_push | pawn_attacks);
 }
 
-// Returns all moves from piece query
 std::vector<Move>
 MoveGen::generate_moves(Board& board,
                         const std::vector<std::pair<Piece, Color>>& pieces) {
@@ -263,8 +261,8 @@ MoveGen::generate_moves(Board& board,
     std::vector<Move> possible_moves;
     std::function<bitboard(bitboard)> move_generator;
 
-    // Iterate though piece query and store all the functions needed for this
-    // piece generation
+    // Iterate though all piece queries and
+    // choose the function needed for this piece generation
     for (auto pair : pieces) {
         switch (pair.first) {
         case Piece::Knight:
@@ -322,8 +320,8 @@ MoveGen::generate_moves(Board& board,
             const bitboard one_piece = BitBoard::pop_lsb(all_pieces);
             const square piece_square = BitBoard::to_square(one_piece);
 
-            // All the moves are a combination of the appropriate move_generator
-            // and the removal of the already occupied squares
+            // All the moves are the application of the appropriate move
+            // generator and the removal of the already occupied squares
             bitboard moves =
                 move_generator(one_piece) & ~board.get_color_board(pair.second);
 

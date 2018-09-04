@@ -38,8 +38,7 @@ square BitBoard::to_square(const bitboard& b) {
     assert((b && !(b & (b - 1))) == 1);
 
     // Using a DeBruijn Multiplication with an isolated LS1B
-    // For more info:
-    // http://chessprogramming.wikispaces.com/BitScan#Bitscan%20forward-De%20Bruijn%20Multiplication-With%20isolated%20LS1B
+    // @LINK: http://chessprogramming.wikispaces.com/BitScan#Bitscan%20forward-De%20Bruijn%20Multiplication-With%20isolated%20LS1B
     const std::array<square, 64> index64 = {
         0,  1,  48, 2,  57, 49, 28, 3,  61, 58, 50, 42, 38, 29, 17, 4,
         62, 55, 59, 36, 53, 51, 43, 22, 45, 39, 33, 30, 24, 18, 12, 5,
@@ -52,8 +51,7 @@ square BitBoard::to_square(const bitboard& b) {
 
 bitboard BitBoard::reverse(bitboard b) {
     // Reverses a bitboard by 180 degrees (a1 is mapped to h8)
-    // For more information see:
-    // https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotating
+    // @LINK: https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotating
     const bitboard h1 = 0x5555555555555555;
     const bitboard h2 = 0x3333333333333333;
     const bitboard h4 = 0x0F0F0F0F0F0F0F0F;
