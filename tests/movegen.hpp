@@ -1,6 +1,26 @@
 #include "../include/movegen.hpp"
 #include "doctest.h"
 
+uint64_t perft(Board& b, int depth) {
+    const Color side = b.get_side_to_play();
+    auto moves = MoveGen::generate_moves(b, {{Piece::Pawn, side},
+                                             {Piece::Bishop, side},
+                                             {Piece::Knight, side},
+                                             {Piece::Rook, side},
+                                             {Piece::Queen, side},
+                                             {Piece::King, side}});
+    uint64_t nodes = 0;
+    if (depth == 0) {
+        return 1;
+    }
+    for (auto move : moves) {
+        b.apply_move(move);
+        nodes += perft(b, depth - 1);
+        b.undo_move();
+    }
+    return nodes;
+};
+
 TEST_CASE("MoveGen") {
     SUBCASE("Sliding Pieces Generation") {
 
@@ -160,5 +180,12 @@ TEST_CASE("MoveGen") {
                 REQUIRE(m.is_capture == 1);
             }
         }
+    }
+    SUBCASE("Perft") {
+        Board b;
+        REQUIRE(perft(b, 0) == 1);
+        REQUIRE(perft(b, 1) == 20);
+        REQUIRE(perft(b, 2) == 400);
+        REQUIRE(perft(b, 3) == 8902);
     }
 }
