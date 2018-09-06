@@ -1,6 +1,5 @@
 #include "../include/movegen.hpp"
 #include <functional>
-#include <iostream>
 
 // @TODO:
 // - Test for captures
@@ -258,6 +257,7 @@ std::vector<Move>
 MoveGen::generate_moves(Board& board,
                         const std::vector<std::pair<Piece, Color>>& pieces) {
 
+    // @TODO: Generate only legal moves
     std::vector<Move> possible_moves;
     std::function<bitboard(bitboard)> move_generator;
 
@@ -307,8 +307,6 @@ MoveGen::generate_moves(Board& board,
                 return generate_pawn_moves(board, b, pair.second);
             };
             break;
-        default:
-            break;
         }
 
         bitboard all_pieces = board.get_piece_board(pair.first, pair.second);
@@ -335,12 +333,4 @@ MoveGen::generate_moves(Board& board,
     }
 
     return possible_moves;
-}
-
-void MoveGen::print_move(const Move& m) {
-    std::cout << "\nPIECE: " << static_cast<char>(m.piece_type)
-              << "\nCOLOR: " << static_cast<bool>(m.color)
-              << "\nFROM: " << static_cast<int>(m.from)
-              << "\nTO: " << static_cast<int>(m.to)
-              << "\nIS CAPTURE: " << m.is_capture << "\n\n";
 }
